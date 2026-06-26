@@ -1,18 +1,15 @@
-<<<<<<< HEAD
-# arke
-Arke is knowledge project
-=======
-# 文档解析问答管理系统
+# Arke 知识库管理系统
 
-基于 PRD 与技术架构文档实现的文档解析与问答管理系统。支持上传 PDF、PPTX、XLSX 文档，自动解析文本内容，并通过阿里百炼大模型生成可管理的问答。
+Arke 是一个面向知识库管理、文档解析、问答生成和知识问答的应用。系统支持将文档上传到本地目录或 RustFS 对象存储，解析后生成知识片段，并结合向量检索与大模型完成知识库问答。
 
 ## 功能概览
 
-- **文档上传**：原始文件直接保存到项目根目录 `uploads/`
-- **内容解析**：优先调用 MinerU 服务（`/file_parse`）解析 PDF、Office、图片等文档
-- **问答生成**：调用阿里百炼 DashScope API（默认 `qwen-plus`）生成问答预览
-- **问答管理**：编辑、启用/停用、删除、批量操作
-- **数据库迁移**：启动时自动执行 `server/migrations/` 下的 Go migrations
+- **知识库管理**：创建知识库、上传文档、查看解析状态和文档分段。
+- **文档存储**：支持本地 `uploads` 目录和 RustFS/S3 兼容对象存储。
+- **文档解析**：支持原生解析与 MinerU 解析配置，可在系统设置中检测解析服务。
+- **问答生成**：基于文档内容生成可管理的问答数据。
+- **知识问答**：基于知识库检索相关片段并生成答案。
+- **系统设置**：支持上传位置、RustFS、文档解析、模型参数等配置。
 
 ## 技术栈
 
@@ -20,117 +17,117 @@ Arke is knowledge project
 |------|------|
 | 前端 | Vue 3 + TypeScript + Vite + Tailwind CSS |
 | 后端 | Go + Gin + GORM |
-| 数据库 | MySQL 8.4.9 |
+| 数据库 | MySQL 8.4 |
+| 向量库 | Milvus |
+| 对象存储 | RustFS / S3 兼容存储 |
 | 大模型 | 阿里百炼 DashScope 兼容接口 |
 | 部署 | Docker Compose |
 
-## 快速启动（Docker）
+## 快速启动
 
 ```bash
-# 1. 复制环境变量并填写阿里百炼 API Key
 cp .env.example .env
-# 编辑 .env，设置 DASHSCOPE_API_KEY=你的密钥
+```
 
-# 2. 启动全部服务
+编辑 `.env`，至少填写：
+
+```bash
+DASHSCOPE_API_KEY=你的密钥
+```
+
+启动服务：
+
+```bash
 docker compose up -d --build
-
-# 3. 访问
-# 前端：http://localhost:8083
-# 后端 API：http://localhost:8082/api/health
-# MySQL（宿主机）：localhost:3406
 ```
 
-上传的文件会持久化到 `./uploads` 目录，MySQL 数据保存在 Docker volume 中。
+默认访问地址：
 
-## 本地开发
+```text
+前端：http://localhost:18083
+后端：http://localhost:18082/api/health
+RustFS：http://localhost:19001
+Milvus Bridge：http://localhost:18088
+```
 
-### 后端
+## 常用命令
+
+前端检查：
 
 ```bash
-# 启动 MySQL（可使用 docker compose 仅启动 mysql）
-docker compose up -d mysql
-
-# 配置环境变量（项目根目录 .env 会自动加载）
-cp .env.example .env
-
-# 运行后端
-cd server
-go run ./cmd/api
+cd frontend
+npm run check
+npm run lint
+npm run build
 ```
 
-默认连接 `127.0.0.1:3406`（Docker 映射端口），上传目录自动解析为项目根目录 `uploads/`。
-
-### 前端
+后端检查：
 
 ```bash
-cd web
-npm install
-npm run dev
+cd backend
+go test ./...
 ```
 
-开发服务器默认代理到 `http://localhost:8080/api`。
+重新构建部署：
 
-## 环境变量
+```bash
+docker compose up -d --build
+```
 
-| 变量 | 说明 | 默认值 |
-|------|------|--------|
-| `MYSQL_DSN` | MySQL 连接串 | `docqa:docqa_password@tcp(127.0.0.1:3406)/doc_parse_qa?...` |
-| `UPLOAD_DIR` | 上传目录 | `uploads`（项目根目录） |
-| `DASHSCOPE_API_KEY` | 阿里百炼 API Key | 必填（问答生成） |
-| `DASHSCOPE_MODEL` | 模型名称 | `qwen-plus` |
-| `DASHSCOPE_BASE_URL` | API 地址 | DashScope 兼容模式 |
-| `DASHSCOPE_TIMEOUT_SECONDS` | 百炼 API 超时（秒，最大 300） | `300` |
-| `MINERU_BASE_URL` | MinerU 服务地址 | `http://10.3.17.83:7861` |
-| `MINERU_TIMEOUT_SECONDS` | MinerU 解析超时（秒，最大 300） | `300` |
-| `PORT` | 后端端口 | `8082`（Docker 映射） |
+只重建前端：
 
-> **安全提示**：API Key 仅通过 `.env` 或部署环境变量注入，切勿提交到 Git。
+```bash
+docker compose up -d --build web
+```
 
-## 百炼 API 常见问题
-
-### 1. DNS 解析失败（`no such host`）
-
-Docker 容器内无法解析 `dashscope.aliyuncs.com` 时，`docker-compose.yml` 已为 server 服务配置公共 DNS（223.5.5.5 等）。修改后重建后端：
+只重建后端：
 
 ```bash
 docker compose up -d --build server
 ```
 
-### 2. 403 IP 白名单限制（`IP access denied by API-Key restriction`）
+## 关键环境变量
 
-说明当前 API Key 在百炼控制台启用了 **IP 访问限制**，而服务器出口 IP 不在白名单中。
-
-**解决步骤：**
-
-1. 登录 [阿里云百炼控制台](https://bailian.console.aliyun.com/) → **API Key 管理**
-2. 找到对应 Key，选择以下任一方式：
-   - **关闭 IP 限制**（本地开发推荐）
-   - **将本机公网 IP 加入白名单**（生产环境推荐）
-3. 查看当前公网 IP：浏览器访问 https://ifconfig.me 或在终端执行 `curl ifconfig.me`
-4. 修改后无需改代码，直接重试生成问答
-
-## API 概览
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/documents/upload` | 上传文档到 uploads 并解析 |
-| GET | `/api/documents` | 文档列表 |
-| POST | `/api/qa/generate-preview` | 调用百炼生成问答预览 |
-| POST | `/api/qa/save-generated` | 保存预览问答 |
-| GET | `/api/qa` | 问答列表 |
-
-完整接口定义见 `.trae/documents/技术架构-文档解析问答管理系统.md`。
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `WEB_PORT` | 前端端口 | `18083` |
+| `SERVER_PORT` | 后端端口 | `8082` |
+| `MYSQL_PORT` | MySQL 暴露端口 | `13406` |
+| `RUSTFS_PORT` | RustFS API 端口 | `19000` |
+| `RUSTFS_WEBUI_PORT` | RustFS 控制台端口 | `19001` |
+| `DASHSCOPE_API_KEY` | 阿里百炼 API Key | 空，需自行配置 |
+| `DASHSCOPE_BASE_URL` | DashScope 兼容接口地址 | 官方兼容模式地址 |
+| `DASHSCOPE_MODEL` | 问答生成模型 | `qwen-plus` |
+| `MINERU_BASE_URL` | MinerU 服务地址 | 按实际环境配置 |
+| `S3_ENDPOINT` | RustFS/S3 Endpoint | `rustfs:9000` |
+| `S3_ACCESS_KEY` | RustFS/S3 Access Key | `rustfsadmin` |
+| `S3_SECRET_KEY` | RustFS/S3 Secret Key | `rustfsadmin` |
+| `S3_BUCKET` | 文档存储 bucket | `documents` |
 
 ## 目录结构
 
-```
-doc-parse-qa/
-├── uploads/              # 上传文件存储（持久化）
-├── server/
-│   ├── cmd/api/main.go   # 后端入口
-│   └── migrations/       # 数据库迁移 SQL
-├── web/                  # Vue 前端
+```text
+arke/
+├── backend/              # Go 后端服务
+│   ├── config/           # YAML 配置
+│   ├── handlers/         # HTTP handlers
+│   ├── migrations/       # 数据库迁移
+│   ├── models/           # 数据模型
+│   ├── routes/           # 路由注册
+│   └── services/         # 业务服务
+├── frontend/             # Vue 前端应用
+│   ├── src/api/          # API 客户端
+│   ├── src/layouts/      # 页面布局
+│   ├── src/views/        # 页面视图
+│   └── src/types/        # 类型定义
+├── milvus-bridge/        # Milvus HTTP 桥接服务
+├── uploads/              # 本地上传文件目录
 ├── docker-compose.yml
 └── .env.example
 ```
->>>>>>> cf24f4b (init)
+
+## 安全说明
+
+- 不要提交 `.env`。
+- 不要把 DashScope API Key 写入 YAML 或源码。
+- 生产环境建议修改 MySQL、RustFS 等默认密码。

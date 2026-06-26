@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"go.yaml.in/yaml/v3"
@@ -148,6 +149,24 @@ func convertToConfig(yamlCfg yamlConfig) Config {
 }
 
 func applyEnvOverrides(cfg *Config) {
+	if value := os.Getenv("DASHSCOPE_API_KEY"); value != "" {
+		cfg.DashScopeAPIKey = value
+	}
+	if value := os.Getenv("DASHSCOPE_BASE_URL"); value != "" {
+		cfg.DashScopeBaseURL = value
+	}
+	if value := os.Getenv("DASHSCOPE_MODEL"); value != "" {
+		cfg.DashScopeModel = value
+	}
+	if value := os.Getenv("DASHSCOPE_TIMEOUT_SECONDS"); value != "" {
+		cfg.DashScopeTimeout = parseTimeoutString(value, cfg.DashScopeTimeout)
+	}
+	if value := os.Getenv("MINERU_BASE_URL"); value != "" {
+		cfg.MinerUBaseURL = value
+	}
+	if value := os.Getenv("MINERU_TIMEOUT_SECONDS"); value != "" {
+		cfg.MinerUTimeout = parseTimeoutString(value, cfg.MinerUTimeout)
+	}
 	if value := os.Getenv("S3_ENDPOINT"); value != "" {
 		cfg.S3Endpoint = value
 	}
@@ -166,6 +185,14 @@ func applyEnvOverrides(cfg *Config) {
 	if value := os.Getenv("S3_USE_SSL"); value != "" {
 		cfg.S3UseSSL = value == "true"
 	}
+}
+
+func parseTimeoutString(value string, fallback time.Duration) time.Duration {
+	seconds, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+	return parseTimeout(seconds)
 }
 
 func parseTimeout(seconds int) time.Duration {

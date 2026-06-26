@@ -1,62 +1,31 @@
-<<<<<<< HEAD
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-=======
->>>>>>> cf24f4b (init)
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, built with `go test -c`
-*.test
-
-<<<<<<< HEAD
-# Code coverage profiles and other test artifacts
-*.out
-coverage.*
-*.coverprofile
-profile.cov
-=======
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
->>>>>>> cf24f4b (init)
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-<<<<<<< HEAD
-# Go workspace file
-go.work
-go.work.sum
-
-# env file
-.env
-
-# Editor/IDE
-# .idea/
-# .vscode/
-=======
 # Environment & secrets
 .env
 .env.local
+.env.*.local
 
 # Uploaded documents
 uploads/*
 !uploads/.gitkeep
 
-# IDE
-.idea/
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Node
 node_modules/
 dist/
+dist-ssr/
+.vite/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
 
-# Go
-server/uploads/
+# Go binaries and test artifacts
 *.exe
 *.exe~
 *.dll
@@ -64,5 +33,24 @@ server/uploads/
 *.dylib
 *.test
 *.out
+*.coverprofile
+coverage.*
+profile.cov
+backend/arke-server
+
+# Go workspace
+go.work
+go.work.sum
+vendor/
+
+# Temporary files
+tmp/
 /tmp/
->>>>>>> cf24f4b (init)
+*.tmp
+*.bak
+.DS_Store
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json

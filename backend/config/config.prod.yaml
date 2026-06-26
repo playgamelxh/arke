@@ -10,7 +10,7 @@ cors:
     - "*"
 
 dashscope:
-  api_key: "sk-41fc14d76a3146fbab6752d20cb8c486"
+  api_key: ""
   base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
   model: "qwen-plus"
   timeout_seconds: 300
