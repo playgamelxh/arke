@@ -1,0 +1,28 @@
+server:
+  port: "8080"
+
+database:
+  dsn: "docqa:docqa_password@tcp(127.0.0.1:3306)/doc_parse_qa?charset=utf8mb4&parseTime=True&loc=Local&multiStatements=true"
+  migration_path: "file://migrations"
+
+cors:
+  allowed_origins:
+    - "*"
+
+dashscope:
+  api_key: ""
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+  model: "qwen-plus"
+  timeout_seconds: 300
+
+mineru:
+  base_url: "http://10.3.17.83:7861"
+  timeout_seconds: 300
+
+s3:
+  endpoint: "rustfs:9000"
+  access_key: "rustfsadmin"
+  secret_key: "rustfsadmin"
+  bucket: "documents"
+  region: "us-east-1"
+  use_ssl: false
